@@ -63,6 +63,21 @@ courses[index] = newCourse;
 return res.status(201). send(newCourse);
 });
 
+app.delete('/api/courses/:id', (req, res)=>{
+const {id } = req. params ;
+let message = 'Pls enter a valid course id';
+if(Number.isNaN(Number(id))) return res.status(403).send({ message}) ;
+
+const course = courses. find(course_el => course_el. id == id);
+
+message = "course not found!";
+if(!course) return res. status(404).send({message});
+
+courses. splice(courses. indexOf(course), 1);
+message = 'deleted successfully';
+return res. status(200). send({message});
+});
+
 const port = process. env. PORT || 3000;
 
 app. listen (port, ()=> console.log(`Server listening on port`, port));
