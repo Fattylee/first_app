@@ -44,8 +44,14 @@ res. end();
 
 });
 
-server. listen(8080);
+server. listen(8081);
 console.log('Listening on port 4000');
 const path = require("path");
 console.log (path. parse(__filename,  __dirname  ))
 //const _ = require('underscore');
+const Joi = require('joi');
+
+const schema = Joi. string(). min(3). required();
+
+const result =Joi. validate("", schema);
+console.log (result. error );

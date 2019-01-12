@@ -2,7 +2,15 @@ const express = require ("express");
 const app = express();
 // const bodyParser = require('body-parser');
 
-app. use(express. json());
+// process. env. NODE_ENV
+if (app. get('env') === 'development'){
+app. use(require('./logger'));
+console.log('Morgan enabled... ')
+}
+
+app. use(express. json()); // middleware
+app. use(require('morgan')('tiny')); // logger middleware
+app. use(express. static('public')); //middleware for serving static files
 const courses = [
 {id: 1, name: 'course1'},
 {id: 2, name: 'course2'}, 

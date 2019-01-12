@@ -17,5 +17,9 @@ this. emit('click', "this is my data")
 }
 
 }
+const myMiddleWare = (req, res, next) =>{
+console.log ('This is my custom middleware');
+next();
+}
 
-module. exports = Log;
+module. exports = myMiddleWare ;
