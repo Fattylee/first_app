@@ -1,0 +1,22 @@
+body {
+margin: 0;
+padding: 0;
+background: grey;
+font-family: helvatica, "sans-serif";
+font-variant :small-caps ;
+}
+
+.click-me {
+padding: 10px 15px ;
+background: skyblue;
+color :white ;
+font-size: 2em;
+border: 1px solid transparent ;
+outline :none ;
+}
+
+.click-me:hover {
+color: skyblue ;
+background: white ;
+border: 1px solid skyblue ;
+}
