@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const faker = require('faker');
 
 mongoose. connect('mongodb://localhost/hackme')
 .then(()=>{
@@ -14,19 +15,100 @@ name: String,
 age: {default: 10, type: Number},
 friends: [String],
 birthday: {type: Date, default: Date.now},
-isMarried: Boolean, 
+isMarried: Boolean,
+gender: String, 
 });
 
 // create model
 const Person = mongoose. model('Person', personSchema);
 
-const person1 = new Person({
-name : 'Abu Adnaan',
-friends: ['Abdullah', 'Ummu AbdiLLaah', 'Abdurraheem'],
-isMarried: true
-});
+async function createPerson(){
 
-person1. save()
-.then((res)=>{
-	console.log ('Person crated:', res);
-})
+	const person1 = new Person({
+	name : faker. name. firstName(),
+	friends: [faker. internet. userName() , faker. name. lastName() ],
+	isMarried: (Math. floor(15 * Math. random()) % 2) ? true :false,
+	birthday: faker. date. past(),
+	age: faker. random. number(),
+	gender: (Math. floor(15 * Math. random()) % 2) ? 'male' : 'female', 
+	});
+	
+	try {
+		const res = await person1. save();
+		console.log ('Person crated:', res);
+	} catch(err) {console.log('Can\'t create person', err)}
+}
+
+//for (let el in new Array(100).fill(0)) createPerson();
+
+//getPersons();
+
+//updatePerson();
+
+// deletePerson();
+
+printPerson(getPersons);
+
+// for (let i=0; i<10; i++) createPerson();
+//for( p in [45]) console.log(p);
+
+async function  getPersons() {
+try {
+//	const persons = await Person. findById({_id:'5c3e03989fa2e206972061f2'});
+return await Person. find()
+		//.and([{name: /.*Abu Adnaan.*/i}])
+	//	. or([{__v: {$gt: 0}}, {isMarried: true}, {name: /.*b*/i}])
+		. count()
+		. select('name')
+	//	. skip(10)
+		. sort('name')
+	//	. limit(20)
+;
+} catch (err) {console.log ('can\'t get persons', err)}
+}
+
+async function deletePerson() {
+return await Person.
+//deleteOne({isMarried: false})
+//deleteMany({age: {$gt: 1000}})
+findByIdAndRemove('5c3f68acdea88f782bc7f252');
+}
+
+async function updatePerson() {
+
+try {
+const person = await Person
+//.find({name: /.*Abu.*/i})
+.findById('5c3df79e1aa988790b89751f');
+if(!person) return console.log('course not found');
+const v = [...person. friends]; v.shift();
+//person. friends = v;
+person. set({friends: [... person. friends,'Ummu AbdiLLaah', 'Abdullah', 'Abdurraheem']})
+//const v = [...person. friends];
+//v. pop('Ummu AbdiLLaah', 'Abdurraheem') ;
+//person. friends = v;
+// person. set ({friends: [...person. friends,'mujaahid', 'Ummu AbdiLLaah', 'Abdurraheem']}) ;
+// person. friends = ['mujaahid'];
+//console.log (person )
+return  await person. save();
+
+/*Update without retrieve
+ModelName. update(
+{filter parameters},
+//min, max, inc, mul, set, unset
+{ $set: {fields}}
+);
+
+ModelName. findByIdAndUpdate(id, {update field}, {new: true})
+
+*/
+}catch(err){
+console.log('update error', err);
+}
+}
+
+
+async function printPerson(callBack) {
+const res = await callBack();
+console.log(res);
+}
