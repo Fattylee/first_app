@@ -56,41 +56,119 @@ regex = /^((\w+) ([\w]+))$/;
 console.log (searchStr. replace(regex, '$3 $2 == $1'))
  */
 
+/*
 const mongoose = require('mongoose');
 //import mongoose from 'mongoose';
+const faker = require ('faker');
 
 mongoose. connect('mongodb://localhost/ummu', { useNewUrlParser: true })
 .then(()=> console.log('Mongodb server is connected... '))
 . catch((err) =>console.log('Mongodb server error', err ));
 
 const Person = mongoose. model('Person', new mongoose. Schema({
-name: {type: String, required: true, lowercase: true,trim: true, match: /^[a-z]{2,}(\s{1,2}[a-z]{2,})?$/i },
-age: {type: Number, required: true,  }
+name: {type: String, required: true,trim: true, match: [/^[a-z]{2,}(\s{1,2}[a-z]{2,})?$/i, 'the name field should match this. eg "Abu Adnaan"'] },
+age: {type: Number, required: [true, 'Why no age?'], min: 1  }
 
 }));
 
-async function createPerson() {
-try {
-	let person = new Person({
-	name : 'Khan  ',
-	age: 37,
-	});
-	
-	person = await person. save();
-	console.log(person)
-} catch(err) {
-	console.log('Could not create a person', err. message );
+async function createPerson(name = faker. name. firstName(), age= faker.random.number(120)) {
+	try {
+		let person = new Person({
+		name,
+		age,
+		});
+		
+		person = await person. save();
+		console.log(person)
+	} catch(err) {
+		console.log('Could not create a person', err. message );
+	}
 }
-};
+
 
 async function getPersons() {
 try {
-	const persons = await Person. find();
+	const persons = await Person. find({name: / ^a.+/ig}). skip(0)
+//. select('name -_id')
+//. sort('name')
+. distinct('name')
+//. countDocuments();
 	console.log(persons);
 }catch (err ) {
 	console.log ('Could not get persons', err)
 }
 }
+/*
+async function updatePerson(id) {
 
+// update using findByIdAndUpdate
+
+try {
+
+	const person = await Person. findByIdAndUpdate(id, {$set: {name: 'Brad Traversy '}, age: 56}, {new: true});
+	console.log (person);
+	*/
+	
+	/*
+	let person = await Person. findById(id);
+	if(!person) return console.log('Invalid id:', id);
+	person. set({name: 'Mongo DB', age: 10});
+	person = await person. save();
+	console.log (person );
+	*/
+	
+	/*
+	let person = await Person. updateOne({_id: id}, {$set: {name: "Marsh Mason ", age: 60}}, {new: true});
+console.log (person );
+*/
+/*
+}catch (err ) {console.log('Can not update person', err. message )}
+}
+*/
+/*
+async function deletePerson(id) {
+try {
+
+	console.log(await Person. deleteMany({age: {$gt: 150}}))
+
+	const person = await Person. findManyAndDelete ();
+	console.log(person);
+	*/
+	 //deprecated
+	 /*
+	const person = await Person. findByIdAndRemove(id);
+	console.log(person )
+	*/
+	
+	/*
+	const person = await Person. deleteOne({_id: id});
+	console.log (person);
+	
+}catch (err ){console.log('Can\'t delete person:', err )}
+}
+
+function loop(times, func) {
+	new Array(times). fill(0). forEach (()=>
+	func()
+);
+}
+*/
 //createPerson();
-getPersons();
+//getPersons();
+//updatePerson('5c43e98f06a22b48ce8d00ac');
+//updatePerson({_id: '5c43ea77b3d5f551f066c265h'});
+//updatePerson('5c43ead1aa991955a2385719');
+//updatePerson('5c43ea8ed2b81952d375b5ddt');
+
+//createPerson('Mark', 40)
+//deletePerson('5c445a1043d29b564e9eced2');
+//getPersons();
+//loop(1000, createPerson);
+
+//console.log(Person. Query. base )
+/*
+const arr = new Array(5). fill(0);
+const newArr = arr. map(el => faker. internet. userName());
+console.log(arr, newArr )
+*/
+
