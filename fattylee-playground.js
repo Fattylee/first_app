@@ -182,10 +182,10 @@ const bodyParser = require ('body-parser');
 const app = express();
 const Joi = require('joi');
 
-app. use(morgan('tiny'));
+app. use(morgan('dev'));
 app. use(bodyParser . urlencoded({extended: true }));
 app. use(bodyParser . json());
-//app. use (bodyParser . text({ type: 'text/html' }))
+app. use (bodyParser . text({ type: 'text/html' }))
 const port = process. env. PORT || 3000;
 
 
@@ -231,12 +231,12 @@ if(err) return res. status (403). send(err. details[0]. message );
 }); // end Get / a single person
 
 app. post('/api/persons', (req, res)=>{
-	
-	const {error, value } = validate(req. body);
+	const { name, age } = req. body ;
+	const {error, value } = validate({name, age});
 	if(error){
 	let msg = error. details[0]. message ;
 	if (msg. includes('required pattern')) {
-	msg = '"name" can only contains letters';
+	msg = '"name" can only contains letters, spaces and not more than three names';
 	}
 	return res. send (msg);
 	}
@@ -244,12 +244,15 @@ app. post('/api/persons', (req, res)=>{
 	const query = `
 	Insert into test values(?,?,?);
 	`;
-	 let name, age;
-	 ({name, age} = req. body);
 	const values = [null, name, age];
 	connection. query(query, values, (err, results, field)=>{
 	if (err) return res. status(400).send(err);
-	return res. status(201). send(results);
+	
+	res. status(201). json({
+	message: 'Successfully created',
+	body: {id: results. insertId, name, age}
+	});
+	
 	
 }); 
 }); // End Post
@@ -259,23 +262,48 @@ app. put('/api/persons/:id', (req, res) =>{
 Joi. validate(req. params, {id: Joi. number(). integer(). required(). greater(0)}, (err)=>{
 if(err) return res. status (403). send(err. details[0]. message );
 
-validate(req. body, (err)=>{
+validate(req. body, true, (err)=>{
 if(err) return res. status (403). send(err. details[0]. message );
-
+	
 	let query = 'select id, concat (upper (Substr( name, 1,1)) , Substring(name, 2))  name , age from test where id = ?;';
 	const {id} = req. params; 
 	connection. query(query,[req. params. id], (err, results, field)=>{
 		if (err) return res.status(500). send ( err) ;
 	 		if(results. length == 0) return res. status(200). json({message: 'No person with the given id: '+ id });
-
-		query = `update test set name=?, age=? where id =?`;
-		const {name, age} = req. body ;
-		connection. query(query,[name, age, id], (err)=>{
-		if (err) return res.status(500). send ( err) ;
 		
+		let body = {id, name: results[0]. name , age: results[0]. age};
+		console.log (body)
+		
+		const {name, age} = req. body ;
+		
+		if (!name && !age) {
+		return res. status(201). json({
+		message: 'Successfully updated',
+		body, 
+		});
+		}
+		
+		query = `update test set `;
+		if (name){
+		body = {...body, name,};
+		query += `name='${name}' `;
+			if (age) {
+			body = {...body, age};
+			query +=`,age=${age} `;
+			}
+		}
+
+		if (age) {
+		body = {...body, age};
+		query +=`age=${age} `;
+		}
+		query += `where id =${id}`;
+
+		connection. query(query, (err)=>{
+		if (err) return res.status(500). send ( err) ;
 		res. status(201). json({
 		message: 'Successfully updated',
-		body: {id, name, age}
+		body, 
 		});
 		});
 		
@@ -309,21 +337,29 @@ if(err) return res. status (403). send(err. details[0]. message );
 });
 }); // end Delete / a single person
 
+app. post('/api/dev', devHandler);
 
 app. all('*', (req, res )=>{
 	res. send('<h1>Page not found!</h1><button><a href="/api/persons" target="_blank">Goto Home route</a></button>');
 })
 app. listen(port, ()=>console.log('Server running on port', port ));
 
-function validate(data, callBack ) {
+function validate(data, optional, callBack ) {
 
-const schema = Joi. object({
-name: Joi.string(). min(3). max(12).regex(/^[a-z]{3,12}$/i).  required()
-//. error ((e)=> 'an error occurred')
-, 
-age: Joi. number(). positive(). integer(). min(1). max(120).  required()//. error(e => 'age error')
-//. error(new Error('this is my error message')), 
-});
+let schema;
+if (optional){
+	schema = {
+	name: Joi.string(). min(3). max(50). trim().regex(/^[a-z]{3,50}(\s+[a-z]{3,50}){0,2}$/i)
+	, 
+	age: Joi. number(). positive(). integer(). min(1). max(120)
+	};
+} else {
+	schema = {
+	name: Joi.string(). min(3). max(50). trim().regex(/^[a-z]{3,50}(\s+[a-z]{3,50}){0,2}$/i).  required()
+	, 
+	age: Joi. number(). positive(). integer(). min(1). max(120).  required()
+	};
+}
 
 return Joi. validate(data, schema, callBack);
 }
@@ -334,14 +370,42 @@ if(error) return console.log(error. details[0]. message );
 console.log ( value )
 */
 
-validate({name: 'gg', age: 0 },(error, res)  => {
-if(error){
-let msg = error. details[0]. message ;
-if (msg. includes('required pattern')) {
-msg = 'can only contains letters';
-}
-return console.log (msg);
-}
-
-console.log(res);
+const bcrypt = require('bcryptjs');
+bcrypt. genSalt(10, salt =>{
+	console.log(salt);
 });
+
+async function run(){
+const salt = await bcrypt. genSalt(10);//. then(salt =>console.log(salt))
+console.log (salt, 'SALT' );
+const hashed = await bcrypt. hash('1234', salt);
+console.log (hashed, 'HASH');
+const pw = '1234';
+let hash = '$2a$10$n68rUjwKvdlIumRSgfPsgulcUtPBqpfJOTCqzRcxVpzD98UrXdHRG';
+hash = '$2a$10$CZaJrFlTCI2i9vHDn6ISvuGxetHGfGCqRmmC0xmjOGkaIFr3X1J1a';
+hash = '$2a$10$s4sMl8kM/pXsx5ka9rdl3uZhG5Cp/Z3dBUZePOdlp98AKGHhwlHli';
+hash = '$2a$10$TJH/OMlt7YQI38LWLAyyO.VQ8TBwyaD3URceddTlZQtP.jVPPF.9i'
+const isValid = await bcrypt. compare(pw, hash);
+console.log (isValid);
+}
+run()
+
+function devHandler(req, res) {
+let query = 'alter table test add email varchar(255)  NOT NULL, add password varchar(255 )  not null;';
+
+query = 'desc test';
+
+query = 'alter table test add constraint vh unique (email);'
+
+query = "Insert into d values (null, 'ggb', 'gtrb') ";
+
+query = req. body. query;
+//query = 'alter table test drop state' ;
+
+connection. query (query, (err, results, field)=>{
+if(err) return res. status (400). json({message: err});
+
+return res. status (200). json({message: 'Successfully executed', results});
+});
+
+}
