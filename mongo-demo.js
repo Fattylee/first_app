@@ -11,12 +11,26 @@ console.error('mongodb error occurred:', e)
 
 // create schema
 const personSchema = new mongoose. Schema({
-name: String,
-age: {default: 10, type: Number},
+name: {
+	type:String,
+	required: true,
+	uppercase: true,
+	maxlength: 50,
+	minlength: 2,
+	match: /^[a-z]+( [a-z]+){,2}$/i,
+	trim: true, 
+},
+
+age: { type: Number, required: true },
+
 friends: [String],
-birthday: {type: Date, default: Date.now},
+
+birthday: {type: Date, default: Date.now, required: true },
+
 isMarried: Boolean,
-gender: String, 
+
+gender: { type: String , required: true, enum: ['male', 'female'], lowercase: true } ,
+
 });
 
 // create model
@@ -26,20 +40,24 @@ async function createPerson(){
 
 	const person1 = new Person({
 	name : faker. name. firstName(),
-	friends: [faker. internet. userName() , faker. name. lastName() ],
-	isMarried: (Math. floor(15 * Math. random()) % 2) ? true :false,
-	birthday: faker. date. past(),
-	age: faker. random. number(),
-	gender: (Math. floor(15 * Math. random()) % 2) ? 'male' : 'female', 
+//	friends: [faker. internet. userName() , faker. name. lastName() ],
+//	isMarried: (Math. floor(15 * Math. random()) % 2) ? true :false,
+//	birthday: faker. date. past(),
+	age: '5', 
+//	age: faker. random. number(),
+	gender: 'Male', 
+	// gender: (Math. floor(15 * Math. random()) % 2) ? 'male' : 'female', 
 	});
 	
 	try {
-		const res = await person1. save();
-		console.log ('Person crated:', res);
-	} catch(err) {console.log('Can\'t create person', err)}
+		const person = await person1. save();
+		console.log ( person);
+	} catch(err) {console. error( err. message )}
 }
 
-//for (let el in new Array(100).fill(0)) createPerson();
+//for (let el in new Array(100).fill(0))
+
+createPerson();
 
 //getPersons();
 
@@ -47,7 +65,7 @@ async function createPerson(){
 
 // deletePerson();
 
-printPerson(getPersons);
+//printPerson(createPerson);
 
 // for (let i=0; i<10; i++) createPerson();
 //for( p in [45]) console.log(p);
@@ -58,8 +76,8 @@ try {
 return await Person. find()
 		//.and([{name: /.*Abu Adnaan.*/i}])
 	//	. or([{__v: {$gt: 0}}, {isMarried: true}, {name: /.*b*/i}])
-		. count()
-		. select('name')
+	//	. count()
+	//	. select('name')
 	//	. skip(10)
 		. sort('name')
 	//	. limit(20)

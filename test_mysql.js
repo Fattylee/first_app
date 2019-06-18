@@ -1,8 +1,8 @@
 const mysql = require('mysql');
 const faker = require('faker');
 
-//console.log(faker)
-//name, date, lorem, internet, address, company, 
+console.log(faker)
+//name, date, lorem, internet, address, company, system, commerce, phone, database, hacker, image, finance, helpers, random, locales 
 const category = 'date';
 for (let p in faker[category]){
 console.log (`${p}: ${faker[category][p]()}`)
